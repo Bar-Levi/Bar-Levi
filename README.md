@@ -1,6 +1,7 @@
 <h1 align="center">Hello 👋<br> Here is Bar Levi!</h1>
 <h2 align="center">A passionate software developer from Israel.</h2>
 
+<img src="MyBanner.png" alt="An image for my profile banner.">
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=bar-levi&label=Profile%20views&color=0e75b6&style=flat" alt="bar-levi" /> </p>
 
 
