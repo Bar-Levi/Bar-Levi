@@ -1,5 +1,5 @@
 import type { Config } from '@netlify/functions';
-import { initWebPush, store, vapidConfigured, type Record_ } from './_shared';
+import { initWebPush, store, vapidConfigured, type Record_ } from '../lib/push-shared';
 
 // Runs every minute: sends any reminder whose time has arrived.
 export const config: Config = { schedule: '* * * * *' };

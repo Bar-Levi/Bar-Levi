@@ -1,4 +1,4 @@
-import { json, keyFor, store, validSubscription, vapidConfigured, type Record_, type Reminder } from './_shared';
+import { json, keyFor, store, validSubscription, vapidConfigured, type Record_, type Reminder } from '../lib/push-shared';
 
 export const config = { path: '/api/push-sync' };
 

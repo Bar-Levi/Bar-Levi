@@ -1,4 +1,4 @@
-import { json, vapidConfigured } from './_shared';
+import { json, vapidConfigured } from '../lib/push-shared';
 
 export const config = { path: '/api/push-key' };
 

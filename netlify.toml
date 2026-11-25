@@ -2,10 +2,10 @@
 [build]
   base = "post-op-meds"
   command = "npm run build"
-  publish = "dist"
+  publish = "post-op-meds/dist"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "post-op-meds/netlify/functions"
   node_bundler = "esbuild"
 
 [[headers]]

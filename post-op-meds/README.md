@@ -1,5 +1,7 @@
 # מעקב תרופות אחרי ניתוח פה · Post-Op Meds PWA
 
+**🌐 האפליקציה באוויר:** https://post-op-meds-bl.netlify.app
+
 אפליקציית PWA בעברית (RTL) לתזמון תרופות, נעילות בטיחות ותזכורות לאחר ניתוח בחלל הפה.
 עובדת 100% אופליין, ניתנת להתקנה על מסך הבית, וכל הנתונים נשמרים במכשיר בלבד.
 
@@ -50,7 +52,7 @@ PWA, Service Worker והתראות דורשים HTTPS (או `localhost`).
 ## פריסה ל-Netlify + פוש אמיתי (גם כשהאפליקציה סגורה)
 
 הקובץ `netlify.toml` בשורש הרפוזיטורי כבר מגדיר בנייה מתוך `post-op-meds/`. הפוש רץ על Netlify Functions
-(`netlify/functions/`): פונקציה מתוזמנת בכל דקה שולחת התראות שהגיע זמנן, ו-Netlify Blobs שומר את ההרשמות.
+(`netlify/functions/`, עם קוד משותף ב-`netlify/lib/`): פונקציה מתוזמנת בכל דקה שולחת התראות שהגיע זמנן, ו-Netlify Blobs שומר את ההרשמות.
 
 1. הרץ פעם אחת ליצירת מפתחות VAPID: `npx web-push generate-vapid-keys`
 2. ב-Netlify: **Site configuration → Environment variables** – הוסף:
