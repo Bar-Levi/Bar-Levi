@@ -36,6 +36,18 @@ self.addEventListener('notificationclick', (event) => {
   })());
 });
 
+// Web Push from the server – shows the reminder even when the app is closed.
+self.addEventListener('push', (event) => {
+  let d: { title?: string; body?: string; tag?: string } = {};
+  try { d = event.data?.json() ?? {}; } catch { d = { body: event.data?.text() }; }
+  event.waitUntil(self.registration.showNotification(d.title ?? 'תזכורת תרופה', {
+    body: d.body ?? '', tag: d.tag ?? 'med:push', lang: 'he', dir: 'rtl',
+    icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', requireInteraction: true,
+    // @ts-expect-error – vibrate is not in the lib.dom NotificationOptions type
+    vibrate: [300, 150, 300], renotify: true,
+  }));
+});
+
 interface ScheduledReminder { tag: string; at: number; title: string; body: string }
 
 // Notification Triggers (where supported): schedule alarms that fire even if the app is closed.

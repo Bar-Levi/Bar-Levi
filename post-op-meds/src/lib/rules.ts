@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
   vibrationEnabled: true,
   notifyRokacet: true,
+  serverPush: true,
 };
 
 /** Doses of one medication, newest first. */

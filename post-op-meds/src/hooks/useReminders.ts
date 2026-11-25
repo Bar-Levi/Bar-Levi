@@ -3,6 +3,7 @@ import {
   playChime, showSystemNotification, syncScheduledReminders, vibrate, type ScheduledReminder,
 } from '../lib/alerts';
 import { MEDICATIONS } from '../lib/medications';
+import { disablePush, syncPush, type PushState } from '../lib/push';
 import { loadFired, saveFired } from '../lib/storage';
 import { HOUR } from '../lib/time';
 import type { MedId, MedStatus, Settings } from '../lib/types';
@@ -25,9 +26,10 @@ export interface FiredReminder { medId: MedId; at: number; key: string }
  * notification (if permitted) + chime + vibration exactly once per target time.
  * Also pre-schedules future alarms in the SW where Notification Triggers exist.
  */
-export function useReminders(statuses: MedStatus[], settings: Settings, now: number) {
+export function useReminders(statuses: MedStatus[], settings: Settings, now: number, capability: string) {
   const fired = useRef<Set<string>>(loadFired());
   const [lastFired, setLastFired] = useState<FiredReminder | null>(null);
+  const [pushState, setPushState] = useState<PushState>('unavailable');
 
   const targets = useMemo(
     () => statuses
@@ -59,8 +61,10 @@ export function useReminders(statuses: MedStatus[], settings: Settings, now: num
       .filter((t) => t.at > Date.now())
       .map((t) => ({ tag: t.status.medId, at: t.at, ...reminderText(t.status) }));
     void syncScheduledReminders(items);
+    if (settings.serverPush) void syncPush(items).then(setPushState);
+    else void disablePush().then(() => setPushState('unavailable'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schedKey]);
+  }, [schedKey, settings.serverPush, capability]);
 
-  return { lastFired, dismissLastFired: () => setLastFired(null) };
+  return { lastFired, dismissLastFired: () => setLastFired(null), pushState };
 }

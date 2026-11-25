@@ -41,7 +41,7 @@ export default function App() {
     [doses, now, settings],
   );
   const adherence = useMemo(() => moxypenAdherence(doses, now), [doses, now]);
-  const { lastFired, dismissLastFired } = useReminders(statuses, settings, now);
+  const { lastFired, dismissLastFired, pushState } = useReminders(statuses, settings, now, capability);
 
   useEffect(() => { void requestPersistentStorage(); }, []);
   // Browsers only allow audio after a user gesture – unlock on the first tap.
@@ -129,7 +129,7 @@ export default function App() {
 
         {tab === 'settings' && (
           <SettingsView
-            settings={settings} onChange={updateSettings} capability={capability} onCapability={setCapability}
+            settings={settings} onChange={updateSettings} pushState={pushState} capability={capability} onCapability={setCapability}
             onClearAll={() => replaceState({ doses: [], settings: DEFAULT_SETTINGS })}
           />
         )}

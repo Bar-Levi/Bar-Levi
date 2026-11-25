@@ -24,6 +24,8 @@ export interface Settings {
   vibrationEnabled: boolean;
   /** Notify when Rokacet Plus becomes permitted again (PRN, so optional). */
   notifyRokacet: boolean;
+  /** Also send reminders via the push server so they arrive when the app is closed. */
+  serverPush: boolean;
 }
 
 export type StatusLevel = 'green' | 'yellow' | 'red';

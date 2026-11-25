@@ -4,6 +4,7 @@ import {
   playChime, requestNotificationPermission, showSystemNotification, supportsScheduledNotifications,
   unlockAudio, vibrate, type NotifyCapability,
 } from '../lib/alerts';
+import type { PushState } from '../lib/push';
 import type { Settings } from '../lib/types';
 import { Callout, Toggle, btn } from './ui';
 
@@ -14,8 +15,8 @@ const CAP_TEXT: Record<NotifyCapability, string> = {
   unsupported: 'לא נתמכות בדפדפן זה – יוצגו באנרים בתוך האפליקציה',
 };
 
-export function SettingsView({ settings, onChange, capability, onCapability, onClearAll }: {
-  settings: Settings; onChange: (p: Partial<Settings>) => void;
+export function SettingsView({ settings, onChange, pushState, capability, onCapability, onClearAll }: {
+  settings: Settings; onChange: (p: Partial<Settings>) => void; pushState: PushState;
   capability: NotifyCapability; onCapability: (c: NotifyCapability) => void; onClearAll: () => void;
 }) {
   const [confirmClear, setConfirmClear] = useState(false);
@@ -37,6 +38,15 @@ export function SettingsView({ settings, onChange, capability, onCapability, onC
         {supportsScheduledNotifications() && (
           <p className="text-xs text-emerald-700">הדפדפן תומך בהתראות מתוזמנות – תזכורות יופיעו גם כשהאפליקציה סגורה.</p>
         )}
+        <Toggle checked={settings.serverPush} onChange={(v) => onChange({ serverPush: v })}
+          label="פוש מהשרת (גם כשהאפליקציה סגורה)"
+          description={
+            !settings.serverPush ? 'כבוי – תזכורות רק כשהאפליקציה פתוחה'
+              : pushState === 'active' ? 'פעיל ✓ – זמני התזכורות נשלחים לשרת לצורך שליחת ההתראה (ללא שם או פרטים אישיים)'
+                : pushState === 'needs-permission' ? 'יופעל לאחר אישור התראות'
+                  : pushState === 'unsupported' ? 'הדפדפן לא תומך. ב-iPhone יש קודם „הוספה למסך הבית”'
+                    : 'השרת לא זמין כרגע – התזכורות יעבדו כשהאפליקציה פתוחה'
+          } />
         <Toggle checked={settings.soundEnabled} onChange={(v) => onChange({ soundEnabled: v })}
           label={<span className="flex items-center gap-2"><Volume2 className="h-4 w-4" />צליל תזכורת</span>} />
         <Toggle checked={settings.vibrationEnabled} onChange={(v) => onChange({ vibrationEnabled: v })}
