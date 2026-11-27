@@ -1,0 +1,3 @@
+# Netlify CLI local state
+.netlify
+node_modules
