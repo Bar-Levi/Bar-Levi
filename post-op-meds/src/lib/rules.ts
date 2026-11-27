@@ -4,7 +4,7 @@
  */
 import { RULES } from './medications';
 import {
-  DAY, DAY_BOUNDARY_HOUR, HOUR, MIN, atTimeOfDay, fmtDuration, fmtTime, fmtRelativeDay,
+  DAY, DAY_BOUNDARY_HOUR, HOUR, MIN, fmtDuration, fmtTime, fmtRelativeDay,
   shiftOutOfSleep, treatmentDayKey,
 } from './time';
 import type { DoseEntry, MedId, MedStatus, Settings, ValidationResult } from './types';
@@ -117,49 +117,64 @@ export function evaluateStatus(
       };
     }
 
-    case 'moxypen': {
-      const r = RULES.moxypen;
+    case 'augmentin': {
+      const r = RULES.augmentin;
+      const taken = list.length;
+      const first = list[list.length - 1];
+      const endsAt = first ? first.takenAt + (r.courseTotal - 1) * r.intervalH * HOUR : null;
+      const course = { taken, total: r.courseTotal, endsAt };
       if (!last) {
         return {
-          ...base, level: 'yellow', label: 'זמן מנה מומלץ',
-          detail: `התחלת טיפול – ${r.maxPerDay} מנות ביום בהפרש של כ-${r.intervalH} שעות`,
+          ...base, course, level: 'yellow', label: 'זמן מנה מומלץ',
+          detail: `התחלת טיפול – טבליה כל ${r.intervalH} שעות, ${r.courseTotal} טבליות בסך הכל`,
           lockedUntil: null, nextDueAt: null, countdownTo: null, overdue: false, reminderAt: null,
         };
       }
+      if (taken >= r.courseTotal) {
+        return {
+          ...base, course, level: 'green', label: 'הטיפול הושלם ✓',
+          detail: `נלקחו כל ${r.courseTotal} הטבליות. אין צורך במנות נוספות.`,
+          lockedUntil: null, nextDueAt: null, countdownTo: null, overdue: false, reminderAt: null,
+        };
+      }
+      const nextDue = shiftOutOfSleep(last.takenAt + r.intervalH * HOUR, settings.wakeTime, settings.sleepTime);
       const dayDone = countToday >= r.maxPerDay;
-      const nextDayStart = nextTreatmentDayStart(now);
-      let nextDue = last.takenAt + r.intervalH * HOUR;
-      if (dayDone) nextDue = Math.max(nextDue, atTimeOfDay(nextDayStart, settings.wakeTime));
-      nextDue = shiftOutOfSleep(nextDue, settings.wakeTime, settings.sleepTime);
-
-      const lockEnd = Math.max(last.takenAt + r.minIntervalH * HOUR, dayDone ? nextDayStart : 0);
+      const lockEnd = Math.max(last.takenAt + r.minIntervalH * HOUR, dayDone ? nextTreatmentDayStart(now) : 0);
       if (lockEnd > now) {
         return {
-          ...base, level: 'red', label: 'נעול – להמתין למרווח בטיחות',
+          ...base, course, level: 'red', label: 'נעול – להמתין למרווח בטיחות',
           detail: dayDone
             ? `הושלמו ${r.maxPerDay} מנות היום. המנה הבאה ${when(nextDue, now)}`
-            : `מוקדם מדי – לפחות ${r.minIntervalH} שעות בין מנות (מניעת מנה כפולה). מנה הבאה ${when(nextDue, now)}`,
+            : `מוקדם מדי – לפחות ${r.minIntervalH} שעות בין מנות (מניעת מנה כפולה). המנה הבאה ${when(nextDue, now)}`,
           lockedUntil: lockEnd, nextDueAt: nextDue, countdownTo: nextDue,
           countdownLabel: 'עד המנה הבאה', overdue: false, reminderAt: nextDue,
         };
       }
       if (now < nextDue) {
         return {
-          ...base, level: 'green', label: 'ממתין למועד המנה הבאה',
-          detail: `המנה הבאה מתוכננת ${when(nextDue, now)}. ניתן ליטול מעט מוקדם אם צריך`,
+          ...base, course, level: 'green', label: 'ממתין למועד המנה הבאה',
+          detail: `המנה הבאה מתוכננת ${when(nextDue, now)}. ניתן ליטול מעט מוקדם עם ארוחה`,
           lockedUntil: null, nextDueAt: nextDue, countdownTo: nextDue,
           countdownLabel: 'עד המנה הבאה', overdue: false, reminderAt: nextDue,
         };
       }
       const overdue = now > nextDue + r.overdueGraceH * HOUR;
       return {
-        ...base, level: 'yellow', label: 'זמן מנה מומלץ',
+        ...base, course, level: 'yellow', label: 'זמן מנה מומלץ',
         detail: overdue
-          ? `המנה באיחור של ${fmtDuration(now - nextDue)}. קח כשנזכרת; אם המנה הבאה קרובה – דלג. לעולם אל תכפיל מנה.`
-          : `מנה ${countToday + 1} מתוך ${r.maxPerDay} להיום`,
+          ? `המנה באיחור של ${fmtDuration(now - nextDue)}. קח כשנזכרת, עם ארוחה; אם המנה הבאה בעוד פחות מ-4 שעות – דלג. לעולם אל תכפיל מנה.`
+          : `טבליה ${taken + 1} מתוך ${r.courseTotal} – עם ארוחה וכוס מים`,
         lockedUntil: null, nextDueAt: nextDue, countdownTo: null, overdue, reminderAt: nextDue,
       };
     }
+
+    case 'moxypen':
+      // Archived – replaced by Augmentin. Kept only so old history entries still render.
+      return {
+        ...base, level: 'red', label: 'הוחלף – בארכיון',
+        detail: 'מוקסיפן הוחלף באוגמנטין 875 מ״ג ב-26.11.2026',
+        lockedUntil: null, nextDueAt: null, countdownTo: null, overdue: false, reminderAt: null,
+      };
   }
 }
 
@@ -225,8 +240,11 @@ export function validateIntake(
       return { ok: true, warnings };
     }
 
-    case 'moxypen': {
-      const r = RULES.moxypen;
+    case 'augmentin': {
+      const r = RULES.augmentin;
+      if (others.length >= r.courseTotal) {
+        return { ok: false, reason: `כבר נרשמו כל ${r.courseTotal} טבליות האוגמנטין – הטיפול הושלם.` };
+      }
       const c = nearest(r.minIntervalH * HOUR);
       if (c) {
         return {
@@ -236,14 +254,16 @@ export function validateIntake(
         };
       }
       const key = treatmentDayKey(takenAt);
-      const sameDay = others.filter((d) => treatmentDayKey(d.takenAt) === key).length;
-      if (sameDay >= r.maxPerDay) {
-        return { ok: false, reason: `כבר נרשמו ${r.maxPerDay} מנות מוקסיפן ליום זה. אין ליטול מנה נוספת.` };
+      if (others.filter((d) => treatmentDayKey(d.takenAt) === key).length >= r.maxPerDay) {
+        return { ok: false, reason: `כבר נרשמו ${r.maxPerDay} מנות אוגמנטין ליום זה. אין ליטול מנה נוספת.` };
       }
       const close = nearest(r.intervalH * HOUR);
       if (close) warnings.push(`מוקדם מהמרווח המומלץ (${r.intervalH} שעות) – מנה קודמת ${when(close.takenAt, now)}`);
       return { ok: true, warnings };
     }
+
+    case 'moxypen':
+      return { ok: false, reason: 'מוקסיפן הוחלף באוגמנטין 875 מ״ג (26.11.2026) ואינו חלק מהטיפול הפעיל. אין ליטול את שניהם.' };
   }
 }
 
@@ -258,12 +278,14 @@ export interface AdherenceDay {
   missed: number;
 }
 
-/** Per-treatment-day Moxypen adherence, oldest → newest (max `days` entries). */
-export function moxypenAdherence(doses: DoseEntry[], now: number, days = 7): AdherenceDay[] {
-  const list = dosesFor(doses, 'moxypen').filter((d) => d.takenAt <= now + MIN);
+/** Per-treatment-day antibiotic adherence, oldest → newest (max `days` entries). */
+export function antibioticAdherence(doses: DoseEntry[], now: number, days = 7): AdherenceDay[] {
+  const list = dosesFor(doses, 'augmentin').filter((d) => d.takenAt <= now + MIN);
   if (list.length === 0) return [];
-  const expected = RULES.moxypen.maxPerDay;
+  const expected = RULES.augmentin.maxPerDay;
   const firstKey = treatmentDayKey(list[list.length - 1].takenAt);
+  // Once the course is complete, the day of the last tablet is the end of the strip.
+  const lastKey = list.length >= RULES.augmentin.courseTotal ? treatmentDayKey(list[0].takenAt) : null;
   const todayKey = treatmentDayKey(now);
   const counts = new Map<string, number>();
   for (const d of list) {
@@ -274,12 +296,13 @@ export function moxypenAdherence(doses: DoseEntry[], now: number, days = 7): Adh
   for (let i = 0; i < 60 && out.length < days; i++) {
     // Midday of the i-th previous treatment day avoids DST edge cases.
     const k = treatmentDayKey(now - i * DAY);
+    if (lastKey && k > lastKey) continue;
     const count = counts.get(k) ?? 0;
     const isToday = k === todayKey;
     const isFirstDay = k === firstKey;
     out.unshift({
       key: k, count, expected, isToday, isFirstDay,
-      missed: isToday || isFirstDay ? 0 : Math.max(0, expected - count),
+      missed: isToday || isFirstDay || k === lastKey ? 0 : Math.max(0, expected - count),
     });
     if (k === firstKey) break;
   }

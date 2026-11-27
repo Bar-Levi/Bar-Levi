@@ -1,4 +1,4 @@
-export type MedId = 'arcoxia' | 'rokacet' | 'moxypen';
+export type MedId = 'arcoxia' | 'rokacet' | 'augmentin' | 'moxypen';
 
 export interface DoseEntry {
   id: string;
@@ -49,6 +49,8 @@ export interface MedStatus {
   count24h: number;
   /** Doses in the current treatment day (day boundary 04:00). */
   countToday: number;
+  /** Fixed-length course progress (antibiotics). */
+  course?: { taken: number; total: number; endsAt: number | null };
   /** Scheduled dose is overdue (adherence flag). */
   overdue: boolean;
   /** Time at which a reminder should fire (null = nothing to remind). */

@@ -1,4 +1,4 @@
-import { BellOff, BellRing, AlarmClock, Share, X } from 'lucide-react';
+import { AlarmClock, Ban, BellOff, BellRing, Car, Share, X } from 'lucide-react';
 import { useState } from 'react';
 import { isIOS, isStandalone, requestNotificationPermission, unlockAudio, type NotifyCapability } from '../lib/alerts';
 import { MEDICATIONS } from '../lib/medications';
@@ -55,6 +55,22 @@ export function NotificationSetup({ capability, onChange }: { capability: Notify
   );
 }
 
+/** Permanent, non-dismissible safety strip for the active regimen. */
+export function SafetyStrip() {
+  return (
+    <section className="space-y-2" aria-label="אזהרות בטיחות קבועות">
+      <div className="flex items-center gap-2.5 rounded-2xl bg-red-500 px-3.5 py-3 text-white shadow-sm" role="note">
+        <Ban className="h-5 w-5 shrink-0" />
+        <p className="text-sm font-extrabold leading-snug">איסור מוחלט: אין לשלב נורופן (איבופרופן) עם ארקוקסיה</p>
+      </div>
+      <div className="flex items-center gap-2.5 rounded-2xl bg-amber-100 px-3.5 py-2.5 text-amber-950 ring-1 ring-amber-300" role="note">
+        <Car className="h-5 w-5 shrink-0" />
+        <p className="text-sm font-bold leading-snug">רוקסט פלוס עלול לגרום לנמנום – להימנע מנהיגה</p>
+      </div>
+    </section>
+  );
+}
+
 /** In-app reminder banners – the fallback that always works (iOS, blocked notifications, etc.). */
 export function DueBanner({ statuses, onLog, flashMedId, onDismissFlash }: {
   statuses: MedStatus[]; onLog: (id: MedId) => void; flashMedId: MedId | null; onDismissFlash: () => void;
@@ -76,7 +92,7 @@ export function DueBanner({ statuses, onLog, flashMedId, onDismissFlash }: {
           <AlarmClock className="h-6 w-6 shrink-0" />
           <div className="min-w-0 flex-1 text-sm">
             <p className="font-extrabold">{s.overdue ? 'מנה באיחור' : 'הגיע זמן'}: {MEDICATIONS[s.medId].name}</p>
-            {s.overdue && s.medId === 'moxypen' && <p className="text-xs">קח כשנזכרת – אך לעולם אל תכפיל מנה.</p>}
+            {s.overdue && s.medId === 'augmentin' && <p className="text-xs">קח כשנזכרת – אך לעולם אל תכפיל מנה.</p>}
           </div>
           <button type="button" onClick={() => { onDismissFlash(); onLog(s.medId); }}
             className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900 shadow-sm">רשום נטילה</button>

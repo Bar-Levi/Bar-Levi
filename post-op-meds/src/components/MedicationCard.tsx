@@ -15,6 +15,25 @@ function Dots({ filled, total, color }: { filled: number; total: number; color: 
   );
 }
 
+function CourseProgress({ taken, total, endsAt, now }: { taken: number; total: number; endsAt: number | null; now: number }) {
+  const pct = Math.min(100, Math.round((taken / total) * 100));
+  const left = Math.max(0, total - taken);
+  return (
+    <div className="mt-3 rounded-2xl bg-teal-50 p-3">
+      <div className="flex items-baseline justify-between gap-2 text-sm">
+        <span className="font-extrabold text-teal-900">נלקחו <span className="tabular">{taken}</span> מתוך <span className="tabular">{total}</span> טבליות</span>
+        <span className="font-semibold text-teal-800">{left > 0 ? <>נותרו <span className="tabular">{left}</span></> : 'הושלם ✓'}</span>
+      </div>
+      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={taken}>
+        <div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      {endsAt && left > 0 && (
+        <div className="mt-1.5 text-xs text-teal-800">טבליה אחרונה משוערת: {fmtRelativeDay(endsAt, now)} · <span className="tabular">{fmtTime(endsAt)}</span></div>
+      )}
+    </div>
+  );
+}
+
 export function MedicationCard({ def, status, now, onLog, footer }: {
   def: MedicationDef; status: MedStatus; now: number; onLog: () => void; footer?: ReactNode;
 }) {
@@ -73,13 +92,18 @@ export function MedicationCard({ def, status, now, onLog, footer }: {
           {def.id === 'rokacet' && (
             <span className="flex items-center gap-1.5">24 שעות: <Dots filled={status.count24h} total={4} color="bg-violet-500" /> <span className="tabular">{status.count24h}/4</span></span>
           )}
-          {def.id === 'moxypen' && (
-            <span className="flex items-center gap-1.5">היום: <Dots filled={status.countToday} total={3} color="bg-teal-500" /> <span className="tabular">{status.countToday}/3</span></span>
-          )}
-          {def.id === 'arcoxia' && (
-            <span className="flex items-center gap-1.5"><UtensilsCrossed className="h-3.5 w-3.5" /> פעם ביום, עם אוכל</span>
+          {def.id === 'augmentin' && (
+            <span className="flex items-center gap-1.5">היום: <Dots filled={Math.min(status.countToday, 2)} total={2} color="bg-teal-500" /> <span className="tabular">{status.countToday}/2</span></span>
           )}
         </div>
+
+        {status.course && <CourseProgress {...status.course} now={now} />}
+
+        {def.foodHint && (
+          <div className="mt-3 flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-900">
+            <UtensilsCrossed className="mt-0.5 h-4 w-4 shrink-0" /> {def.foodHint}
+          </div>
+        )}
 
         {def.id === 'rokacet' && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">

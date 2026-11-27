@@ -58,7 +58,7 @@ export function SettingsView({ settings, onChange, pushState, capability, onCapa
 
       <section className="space-y-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
         <h3 className="flex items-center gap-2 font-extrabold"><Sun className="h-5 w-5 text-amber-500" />שעות ערות</h3>
-        <p className="text-sm text-slate-600">מנות מתוזמנות (מוקסיפן, ארקוקסיה) שנופלות בשעות השינה יוזזו לשעת הקימה.</p>
+        <p className="text-sm text-slate-600">מנות מתוזמנות (אוגמנטין, ארקוקסיה) שנופלות בשעות השינה יוזזו לשעת הקימה.</p>
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="mb-1 flex items-center gap-1.5 text-sm font-semibold"><Sun className="h-4 w-4" />קימה</span>

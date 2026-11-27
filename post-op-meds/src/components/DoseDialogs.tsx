@@ -48,11 +48,11 @@ function DoseFields({ medId, form, setForm, now, allowNowToggle }: {
         checked={form.withFood}
         onChange={(v) => setForm({ ...form, withFood: v })}
         label={<span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-blue-600" />נלקח עם אוכל / מים להגנה על הקיבה</span>}
-        description={med.requiresFood ? 'ארקוקסיה יש ליטול עם אוכל כדי להפחית צרבת ופגיעה בקיבה' : 'מומלץ לשתות כוס מים מלאה'}
+        description={med.foodHint ?? 'מומלץ לשתות כוס מים מלאה'}
       />
       {med.requiresFood && !form.withFood && (
         <Callout tone="amber" icon={<AlertTriangle className="h-4 w-4" />}>
-          ארקוקסיה על קיבה ריקה מגבירה סיכון לצרבת ולפגיעה בקיבה. מומלץ לאכול משהו קל לפני הנטילה.
+          {med.name} על קיבה ריקה מגבירה סיכון לצרבת, בחילה ופגיעה בקיבה. מומלץ לאכול משהו לפני הנטילה.
         </Callout>
       )}
 

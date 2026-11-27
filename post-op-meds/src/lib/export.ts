@@ -1,4 +1,4 @@
-import { MEDICATIONS, MED_ORDER } from './medications';
+import { MEDICATIONS, MED_ORDER, RULES } from './medications';
 import { fmtFullDate, fmtTime } from './time';
 import type { DoseEntry } from './types';
 import type { PersistedState } from './storage';
@@ -17,8 +17,12 @@ export function buildTextLog(doses: DoseEntry[]): string {
 
   lines.push('סיכום:');
   for (const id of MED_ORDER) {
+    const med = MEDICATIONS[id];
     const n = doses.filter((d) => d.medId === id).length;
-    lines.push(`• ${MEDICATIONS[id].name} (${MEDICATIONS[id].brand}): ${n} מנות`);
+    if (med.archived && n === 0) continue;
+    const extra = id === 'augmentin' ? ` מתוך ${RULES.augmentin.courseTotal} (נותרו ${Math.max(0, RULES.augmentin.courseTotal - n)})`
+      : med.archived ? ` – ארכיון: ${med.archived.reason} ב-${med.archived.since}` : '';
+    lines.push(`• ${med.name} (${med.brand}): ${n} מנות${extra}`);
   }
   lines.push('');
 
@@ -32,7 +36,8 @@ export function buildTextLog(doses: DoseEntry[]): string {
     const med = MEDICATIONS[d.medId];
     const food = d.withFood ? 'עם אוכל/הגנה לקיבה' : 'ללא אוכל';
     const note = d.note ? ` · הערה: ${d.note}` : '';
-    lines.push(`${fmtTime(d.takenAt)}  ${med.name} – טבליה 1 · ${food}${note}`);
+    const archived = med.archived ? ' [ארכיון]' : '';
+    lines.push(`${fmtTime(d.takenAt)}  ${med.name}${archived} – טבליה 1 · ${food}${note}`);
   }
   if (sorted.length === 0) lines.push('לא נרשמו נטילות.');
   return lines.join('\n');

@@ -16,7 +16,7 @@ const reminderText = (s: MedStatus): { title: string; body: string } => {
   if (s.medId === 'arcoxia') {
     return { title: `⏰ ${med.name}: זמן המנה היומית`, body: 'טבליה אחת עם אוכל להגנה על הקיבה. לא לשלב עם נורופן.' };
   }
-  return { title: `⏰ ${med.name}: זמן מנת אנטיביוטיקה`, body: 'הגיע זמן המנה הבאה. אם הוחמצה – לא להכפיל מנה.' };
+  return { title: `⏰ ${med.name}: זמן מנת אנטיביוטיקה`, body: 'טבליה אחת בתחילת ארוחה עם כוס מים. אם הוחמצה – לא להכפיל מנה.' };
 };
 
 export interface FiredReminder { medId: MedId; at: number; key: string }

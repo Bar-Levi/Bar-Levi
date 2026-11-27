@@ -1,7 +1,7 @@
 import { Ban, Bell, BellOff, History as HistoryIcon, LayoutDashboard, Settings as SettingsIcon, Stethoscope } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdherenceStrip } from './components/Adherence';
-import { DueBanner, NotificationSetup } from './components/Banners';
+import { DueBanner, NotificationSetup, SafetyStrip } from './components/Banners';
 import { EditDoseDialog, IntakeDialog } from './components/DoseDialogs';
 import { ExportPanel, HistoryView, UNDO_WINDOW_MS } from './components/History';
 import { MedicationCard } from './components/MedicationCard';
@@ -13,8 +13,8 @@ import { useStore } from './hooks/store';
 import { useNow } from './hooks/useNow';
 import { useReminders } from './hooks/useReminders';
 import { notificationCapability, unlockAudio, type NotifyCapability } from './lib/alerts';
-import { MEDICATIONS, MED_ORDER } from './lib/medications';
-import { DEFAULT_SETTINGS, evaluateStatus, moxypenAdherence } from './lib/rules';
+import { ACTIVE_MEDS, MEDICATIONS } from './lib/medications';
+import { DEFAULT_SETTINGS, evaluateStatus, antibioticAdherence } from './lib/rules';
 import { requestPersistentStorage } from './lib/storage';
 import { fmtFullDate } from './lib/time';
 import type { DoseEntry, MedId } from './lib/types';
@@ -37,10 +37,10 @@ export default function App() {
   const [capability, setCapability] = useState<NotifyCapability>(notificationCapability);
 
   const statuses = useMemo(
-    () => MED_ORDER.map((id) => evaluateStatus(id, doses, now, settings)),
+    () => ACTIVE_MEDS.map((id) => evaluateStatus(id, doses, now, settings)),
     [doses, now, settings],
   );
-  const adherence = useMemo(() => moxypenAdherence(doses, now), [doses, now]);
+  const adherence = useMemo(() => antibioticAdherence(doses, now), [doses, now]);
   const { lastFired, dismissLastFired, pushState } = useReminders(statuses, settings, now, capability);
 
   useEffect(() => { void requestPersistentStorage(); }, []);
@@ -94,6 +94,7 @@ export default function App() {
       <main className="space-y-4 px-4 pt-4">
         {tab === 'dashboard' && (
           <>
+            <SafetyStrip />
             <NotificationSetup capability={capability} onChange={setCapability} />
             <DueBanner statuses={statuses} onLog={setIntakeMed}
               flashMedId={lastFired?.medId ?? null} onDismissFlash={dismissLastFired} />
@@ -102,7 +103,7 @@ export default function App() {
                 key={s.medId} def={MEDICATIONS[s.medId]} status={s} now={now}
                 onLog={() => setIntakeMed(s.medId)}
                 footer={
-                  s.medId === 'moxypen' ? <AdherenceStrip days={adherence} />
+                  s.medId === 'augmentin' ? <AdherenceStrip days={adherence} />
                     : s.medId === 'arcoxia' ? (
                       <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
                         <Ban className="h-4 w-4 shrink-0" /> אסור לשלב עם נורופן / איבופרופן
@@ -130,7 +131,7 @@ export default function App() {
         {tab === 'settings' && (
           <SettingsView
             settings={settings} onChange={updateSettings} pushState={pushState} capability={capability} onCapability={setCapability}
-            onClearAll={() => replaceState({ doses: [], settings: DEFAULT_SETTINGS })}
+            onClearAll={() => replaceState({ doses: [], settings: DEFAULT_SETTINGS, migrations: state.migrations })}
           />
         )}
       </main>

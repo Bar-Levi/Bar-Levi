@@ -27,10 +27,10 @@ export function HistoryView({ doses, now, onEdit, onUndo }: {
   return (
     <section className="space-y-4">
       <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="סינון לפי תרופה">
-        {(['all', ...MED_ORDER] as const).map((id) => (
+        {(['all', ...MED_ORDER.filter((m) => !MEDICATIONS[m].archived || doses.some((d) => d.medId === m))] as const).map((id) => (
           <button key={id} type="button" role="tab" aria-selected={filter === id} onClick={() => setFilter(id)}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold ${filter === id ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}>
-            {id === 'all' ? 'הכל' : MEDICATIONS[id].name}
+            {id === 'all' ? 'הכל' : MEDICATIONS[id].name}{id !== 'all' && MEDICATIONS[id].archived ? ' (ארכיון)' : ''}
           </button>
         ))}
       </div>
@@ -59,6 +59,9 @@ export function HistoryView({ doses, now, onEdit, onUndo }: {
                         <span className="font-bold">{med.name}</span>
                         <span className="text-sm text-slate-500">· טבליה 1</span>
                       </div>
+                      {med.archived && (
+                        <div className="mt-1 text-xs font-semibold text-slate-500">ארכיון · {med.archived.reason} ({med.archived.since})</div>
+                      )}
                       <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                         {d.withFood
                           ? <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700"><ShieldCheck className="h-3 w-3" />עם אוכל/הגנה</span>
