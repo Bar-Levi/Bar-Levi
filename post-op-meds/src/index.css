@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --color-medical: #2563eb;
+  --color-alert: #ef4444;
+  --color-warn: #f59e0b;
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: var(--font-sans);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabular { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgb(245 158 11 / .55); } 70% { box-shadow: 0 0 0 10px rgb(245 158 11 / 0); } 100% { box-shadow: 0 0 0 0 rgb(245 158 11 / 0); } }
+.pulse-due { animation: pulse-ring 2s infinite; }
+@media (prefers-reduced-motion: reduce) { .pulse-due { animation: none; } }
